@@ -1,4 +1,4 @@
-var socket = io('https://pvawsclienttunnel.azurewebsites.net', { query: "appId=edgeExt" })
+var socket = io('xx', { query: "appId=edgeExt" })
 
 var messages = document.getElementById('messages');
 
