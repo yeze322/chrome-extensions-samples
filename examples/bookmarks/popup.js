@@ -1,10 +1,10 @@
-var socket = io('xx', { query: "appId=edgeExt" })
+var socket = io('https://pvawsclienttunnel.azurewebsites.net', { query: "appId=edgeExt" })
 
 var messages = document.getElementById('messages');
 
 const appendMsg = (type, msg) => {
   var item = document.createElement('li');
-  item.textContent = `(${type})[${new Date().toLocaleString()}]:        ${JSON.stringify(msg)}`;
+  item.textContent = `${msg.command}`;
   messages.appendChild(item);
   window.scrollTo(0, document.body.scrollHeight);
 }
@@ -17,24 +17,24 @@ socket.on('broadcast', function (msg) {
 socket.on('getdata', async function (msg, cb) {
   appendMsg('getdata', msg)
   const tab = await chrome.tabs.query({ active: true, currentWindow: true });
-  let func = () => {}
-
-  switch(msg.command) {
-    case 'bingsearch':
-      func = inputBingSearch;
-      break;
-    case 'bgcolor':
-      func = reddenPage;
-      break;
-    case 'bingresult':
-      func = getBingSearchResult;
-      break;
-  }
+  const cmdMap = {
+    'bingsearch': inputBingSearch,
+    'bgcolor': reddenPage,
+    'bingresult': getBingSearchResult,
+    'clickbingresult': clickResult,
+    'openpva': openPVA,
+    'openbing': openBing,
+    'editcanvas': editingCanvas,
+    'pvatopic': viewTopics,
+    'managechannel': manageChannels
+  };
+  const empty = () => {};
+  const func = cmdMap[msg.command] || empty;
 
   var res = chrome.scripting.executeScript({
     target: { tabId: tab[0].id },
     args: [msg.payload],
-    function: func
+    function: func,
   }, (res) => cb(res[0].result));
 });
 
@@ -58,4 +58,30 @@ function inputBingSearch(payload) {
 
 function getBingSearchResult() {
   return Array.from(document.getElementsByTagName("h2")).map(x => x.innerText)
+}
+
+function openPVA() {
+  window.location = "https://web.powerva.microsoft.com/environments/bcad62e7-415a-4940-8146-4248ca94e224/bots/74ad33c6-38c8-45ab-a881-d61d22bb19dc/";
+}
+
+
+function openBing() {
+  window.location = "https://www.bing.com";
+}
+
+function clickResult(payload) {
+  Array.from(document.getElementsByTagName("h2")).find(x => x.firstChild.textContent === payload.text).firstChild.click();
+}
+
+function viewTopics() {
+  document.querySelector('[data-telemetry-id="ShellSidebarComponent-Topics"]').click();
+}
+
+function editingCanvas() {
+  window.location = "https://web.powerva.microsoft.com/environments/bcad62e7-415a-4940-8146-4248ca94e224/bots/74ad33c6-38c8-45ab-a881-d61d22bb19dc/dialog/new_topic_74ad33c638c845aba881d61d22bb19dc_8a4964498f83424bb3a86295bf7d0952_startover";
+}
+
+function manageChannels() {
+  document.querySelector('[data-telemetry-id="ShellSidebarComponent-Manage"]').click();
+  document.querySelector('[aria-label="Channels"]').click();
 }
