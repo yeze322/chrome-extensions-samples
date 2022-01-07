@@ -17,13 +17,45 @@ socket.on('broadcast', function (msg) {
 socket.on('getdata', async function (msg, cb) {
   appendMsg('getdata', msg)
   const tab = await chrome.tabs.query({ active: true, currentWindow: true });
-  cb(tab.length)
-  chrome.scripting.executeScript({
+  let func = () => {}
+
+  switch(msg.command) {
+    case 'bingsearch':
+      func = inputBingSearch;
+      break;
+    case 'bgcolor':
+      func = reddenPage;
+      break;
+    case 'bingresult':
+      func = getBingSearchResult;
+      break;
+  }
+
+  var res = chrome.scripting.executeScript({
     target: { tabId: tab[0].id },
-    function: reddenPage
-  });
+    args: [msg.payload],
+    function: func
+  }, (res) => cb(res[0].result));
 });
 
-function reddenPage() {
-  document.body.style.backgroundColor = 'red';
+function bindFunction(func, ...args) {
+  return function () { func(...args); };
+}
+function reddenPage(payload) {
+  document.body.style.backgroundColor = payload.color;
+  return 'ASAD';
+}
+
+function inputBingSearch(payload) {
+  var input = document.getElementById('sb_form_q');
+  input.value = payload.query;
+
+  setTimeout(() => {
+    var search = document.getElementById('search_icon');
+    search.click();
+  }, 200)
+}
+
+function getBingSearchResult() {
+  return Array.from(document.getElementsByTagName("h2")).map(x => x.innerText)
 }
