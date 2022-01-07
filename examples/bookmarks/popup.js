@@ -14,8 +14,16 @@ socket.on('broadcast', function (msg) {
   appendMsg('broadcast', msg);
 });
 
-socket.on('getdata', function (msg, cb) {
-  console.log('getdata received', msg);
+socket.on('getdata', async function (msg, cb) {
   appendMsg('getdata', msg)
-  cb(document.getElementById('customInput').value)
+  const tab = await chrome.tabs.query({ active: true, currentWindow: true });
+  cb(tab.length)
+  chrome.scripting.executeScript({
+    target: { tabId: tab[0].id },
+    function: reddenPage
+  });
 });
+
+function reddenPage() {
+  document.body.style.backgroundColor = 'red';
+}
