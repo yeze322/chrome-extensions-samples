@@ -26,6 +26,7 @@ socket.on('getdata', async function (msg, cb) {
     'openbing': openBing,
     'editcanvas': editingCanvas,
     'pvatopic': viewTopics,
+    'whereami': getWindowURL,
     'managechannel': manageChannels
   };
   const empty = () => {};
@@ -50,14 +51,12 @@ function inputBingSearch(payload) {
   var input = document.getElementById('sb_form_q');
   input.value = payload.query;
 
-  setTimeout(() => {
-    var search = document.getElementById('search_icon');
-    search.click();
-  }, 200)
+  var search = document.getElementById('search_icon');
+  search.click();
 }
 
 function getBingSearchResult() {
-  return Array.from(document.getElementsByTagName("h2")).map(x => x.innerText)
+  return Array.from(document.getElementsByTagName("h2")).map(x => x.innerText).join('|');
 }
 
 function openPVA() {
@@ -84,4 +83,8 @@ function editingCanvas() {
 function manageChannels() {
   document.querySelector('[data-telemetry-id="ShellSidebarComponent-Manage"]').click();
   document.querySelector('[aria-label="Channels"]').click();
+}
+
+function getWindowURL() {
+  return window.location.href;
 }
